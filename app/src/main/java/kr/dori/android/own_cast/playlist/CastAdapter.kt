@@ -51,7 +51,7 @@ class CastAdapter(private val activityMover: ActivityMover) : RecyclerView.Adapt
         }
 
         fun setText(data: CastWithPlaylistId) {
-            Glide.with(binding.root.context).load(data.imagePath).into(binding.playlistCast2Iv)
+            Glide.with(binding.root.context).load(data.imagePath).centerCrop().into(binding.playlistCast2Iv)
             val constraintLayout = binding.root as ConstraintLayout
             val constraintSet = ConstraintSet()
             constraintSet.clone(constraintLayout)
@@ -91,6 +91,7 @@ class CastAdapter(private val activityMover: ActivityMover) : RecyclerView.Adapt
             }
         }
     }
+
     fun formatTime(input: String): String {
         return if (input.contains(":")) {
             // 입력이 이미 "분:초" 형식인 경우

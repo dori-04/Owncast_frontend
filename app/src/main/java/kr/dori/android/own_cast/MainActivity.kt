@@ -34,11 +34,13 @@ import retrofit2.Response
 import android.util.Base64
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kr.dori.android.own_cast.forApiData.Playlist
+
 
 import kr.dori.android.own_cast.player.CastWithPlaylistId
 
@@ -170,8 +172,10 @@ class MainActivity : AppCompatActivity() {
 
         initBottomButtons()
         quitApp()
+
         //MainActivity 실행시 비동기로 PlaylistFragment의 데이터를 로드 -> MainActivity 자체의 로드 속도에는 영향이 없습니다.
         loadInitialData()
+
     }
 
 
@@ -454,6 +458,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setText(currentCast: CastWithPlaylistId){
+        Glide.with(binding.root).load(currentCast.imagePath).centerCrop().into(binding.playtableIv)
         binding.castName.text = currentCast.castTitle
         binding.categoryNameTv.text = currentCast.castCategory
         binding.categoryNameTv.bringToFront()
@@ -480,6 +485,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
     private fun loadInitialData() {
         val getAllPlaylist = getRetrofit().create(Playlist::class.java)
 
@@ -499,8 +505,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 }
-
-
-
-

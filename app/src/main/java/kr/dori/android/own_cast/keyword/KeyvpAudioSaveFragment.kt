@@ -31,6 +31,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.size
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
@@ -171,7 +172,7 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             }
             Log.d("이미지 변환","${body}")
 
-            binding.keyAudSaveGalIc.visibility = View.GONE
+            
 
         }
     }
@@ -197,7 +198,7 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val requestFile = tempFile.asRequestBody(mimeType.toMediaTypeOrNull())
 
         // MultipartBody.Part를 생성합니다.
-        val multipartBody = MultipartBody.Part.createFormData("photo", tempFile.name, requestFile)
+        val multipartBody = MultipartBody.Part.createFormData("image", tempFile.name, requestFile)
 
         // 임시 파일 삭제 (선택 사항: 파일 사용 후 삭제)
         tempFile.deleteOnExit()
@@ -410,8 +411,12 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val screenHeight = displayMetrics.heightPixels
         binding.keyAudSaveBtnOnIv.setOnClickListener{
             //finishDialog띄우는 버튼
-
-            postCastSave()//이게 api
+            if(binding.keyAudSaveCategorySp.count>1){
+                postCastSave()
+            }else{
+                Toast.makeText(requireContext(),"카테고리를 추가해주세요",Toast.LENGTH_SHORT).show()
+            }
+            //이게 api
 
             /*
             val window = dialog.window
@@ -451,13 +456,22 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
                 withContext(Dispatchers.Main) {
                     try {
                         if (response.isSuccessful) {
+
                             Log.d("캐스트 저장", "${response.body()?.result}")
                             finDialog.setCancelable(false)//dialog는 여기서
                             finDialog.setCanceledOnTouchOutside(false)
                             finDialog.show()
 
                         } else {
-                            Toast.makeText(this@KeyvpAudioSaveFragment.requireContext(), "저장 실패 코드 ${response.code()}", Toast.LENGTH_SHORT).show()
+                            Log.d("캐스트 수정","${response.code()},${response.message()},${response.errorBody()?.string()}")
+                            if(response.code() == 413){
+                                Toast.makeText(this@KeyvpAudioSaveFragment.requireContext(), "파일이 너무 큽니다.\n용량 제한 10Mb", Toast.LENGTH_SHORT).show()
+
+                            }else{
+                                Toast.makeText(this@KeyvpAudioSaveFragment.requireContext(), "오류 코드 : ${response.code()}\n${response.message()}", Toast.LENGTH_SHORT).show()
+
+                            }
+
                         }
 
                     } catch (e: Exception) {
@@ -474,10 +488,7 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     private fun addPlaylist(categoryName: String){
         dialog.dismiss()
         val apiService = getRetrofit().create(Playlist::class.java)
-        val loadingdialog = KeywordLoadingDialog(requireContext(),"플리를 생성중이에요")
-        loadingdialog.setCancelable(false)
-        loadingdialog.setCanceledOnTouchOutside(false)
-        loadingdialog.show()
+
         CoroutineScope(Dispatchers.IO).launch() {
             val response = apiService.postPlaylist(categoryName)
             launch {
@@ -507,7 +518,7 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                    loadingdialog.dismiss()
+
                 }
             }
         }
@@ -543,14 +554,11 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     //바로 들으러 가기
     fun getCastInfo(playlistId: Long) {
         val getAllPlaylist = getRetrofit().create(Playlist::class.java)
-        val dialog = KeywordLoadingDialog(requireContext(),"이동 중입니다.")
-        dialog.setCancelable(false)
-        dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = getAllPlaylist.getPlaylistInfo(playlistId, 0, 20)
-                withContext(Dispatchers.Main) { dialog.dismiss() }
+                val response = getAllPlaylist.getPlaylistInfo(playlistId, 0, 100)
+                withContext(Dispatchers.Main) {  }
                 if (response.isSuccessful) {
                     val playlistInfo = response.body()?.result
                     withContext(Dispatchers.Main) {
@@ -620,5 +628,3 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     }
 
 }
-
-
